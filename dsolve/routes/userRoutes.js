@@ -6,7 +6,7 @@ const utils = require('../utils')
 
 const router = express.Router()
 
-router.post('/signup', (req, res, next) => {
+router.post('/register', (req, res, next) => {
     let userData = {
         name: req.body.name,
         phone: req.body.phone,
@@ -18,22 +18,14 @@ router.post('/signup', (req, res, next) => {
             utils.errorMessage(res, 500, "Email already exists. Please Login to continue.");
         }
         else {
-            bcrypt.hash(userData.password, 5, function (err, hash) {
-                if (err) {
-                    utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
-                }
-                else {
-                    userData.password = hash;
-                    Users.create(userData).then(response => {
-                        console.log(response)
-                        res.status(201).json({
-                            message: "Acount Created. Please Login to continue."
-                        })
-                    }).catch(err => {
-                        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
-                    })
-                }
-            });
+            Users.create(userData).then(response => {
+                console.log(response)
+                res.status(201).json({
+                    message: "Acount Created. Please Login to continue."
+                })
+            }).catch(err => {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+            })
         }
     }).catch(err => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
@@ -45,35 +37,18 @@ router.post('/login', (req, res, next) => {
         email: req.body.email,
         password: req.body.password
     }
-    Users.findOne({ email: userData.email }).then(response => {
+    console.log(userData);
+    Users.findOne({ email: userData.email, password: userData.password }).then(response => {
         if (response) {
-            bcrypt.compare(userData.password, response.password, function (err, result) {
-                if (err) {
-                    utils.errorMessage(res, 401, "Username or password did not match", err);
-                }
-                if (result) {
-                    const token = jwt.sign(
-                        {
-                            email: response.email,
-                            id: response._id
-                        },
-                        utils.API_AUTH_SECRET,
-                        { expiresIn: '2h' }
-                    );
-                    res.status(200).json({
-                        message: "Successfully logged in",
-                        data: token
-                    })
-                }
-                else {
-                    utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
-                }
+            res.status(200).json({
+                message: "Successfully logged in",
+                data: response
             });
         } else {
-            utils.errorMessage(res, 401, "Username or password did not match", err);
+            utils.errorMessage(res, 401, "Username or password did not match");
         }
     }).catch(error => {
-        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, error);
     })
 })
 
