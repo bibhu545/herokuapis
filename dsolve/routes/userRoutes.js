@@ -11,7 +11,8 @@ router.post('/register', (req, res, next) => {
         name: req.body.name,
         phone: req.body.phone,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        userType: req.body.userType,
     }
     Users.findOne({ email: userData.email }).then(response => {
         if (response) {
@@ -20,9 +21,7 @@ router.post('/register', (req, res, next) => {
         else {
             Users.create(userData).then(response => {
                 console.log(response)
-                res.status(201).json({
-                    message: "Acount Created. Please Login to continue."
-                })
+                res.status(201).json(response);
             }).catch(err => {
                 utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
             })

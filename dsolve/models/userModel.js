@@ -19,7 +19,7 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    profilePicture: {
+    companyName: {
         type: String
     },
     joinedAt: {
@@ -35,8 +35,8 @@ const userSchema = mongoose.Schema({
         required: true,
         default: utils.ActiveStatus.Active
     },
-    isAdmin:{
-        type: Boolean,
+    userType:{
+        type: Number,
         required: true,
         default: false
     }
