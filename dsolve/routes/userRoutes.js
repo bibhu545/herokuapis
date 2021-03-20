@@ -10,7 +10,8 @@ router.post('/register', (req, res, next) => {
         phone: req.body.phone,
         email: req.body.email,
         password: req.body.password,
-        userType: req.body.userType,
+        companyName: req.body.companyName,
+        userType: req.body.userType
     }
     Users.findOne({ email: userData.email }).then(response => {
         if (response) {
@@ -38,6 +39,42 @@ router.post('/login', (req, res, next) => {
             res.status(200).json(response);
         } else {
             utils.errorMessage(res, 401, "Username or password did not match");
+        }
+    }).catch(error => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, error);
+    })
+})
+
+router.post('/edit-profile', (req, res, next) => {
+    let id = req.body.userId;
+    let userData = {
+        name: req.body.name,
+        phone: req.body.phone,
+        companyName: req.body.companyName,
+        userType: req.body.userType
+    }
+    Users.findByIdAndUpdate(id, userData, {new: true}).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        }
+        else {
+            utils.errorMessage(res, 500, 'User does not exists anymore');
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
+router.get('/view-profile', (req, res, next) => {
+    let userData = {
+        email: req.headers.email
+    }
+    console.log(userData);
+    Users.findOne(userData).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        } else {
+            utils.errorMessage(res, 500, 'User does not exists anymore', err);
         }
     }).catch(error => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, error);
