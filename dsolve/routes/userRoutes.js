@@ -45,7 +45,7 @@ router.post('/login', (req, res, next) => {
     })
 })
 
-router.post('/edit-profile', (req, res, next) => {
+router.post('/edit-profile', async (req, res, next) => {
     let id = req.body.userId;
     let userData = {
         name: req.body.name,
@@ -53,15 +53,28 @@ router.post('/edit-profile', (req, res, next) => {
         companyName: req.body.companyName,
         userType: req.body.userType
     }
-    Users.findByIdAndUpdate(id, userData, {new: true}).then(response => {
+    Users.findOne({ _id: id }).then(response => {
         if (response) {
-            res.status(200).json(response);
+            userData = response;
+            userData.name = req.body.name;
+            userData.phone = req.body.phone;
+            userData.companyName = req.body.companyName;
+            userData.userType = req.body.userType;
+            Users.findOneAndUpdate({ _id: id }, { $set: userData }, { new: true }).then(response => {
+                if (response) {
+                    res.status(200).json(response);
+                }
+                else {
+                    utils.errorMessage(res, 500, 'User does not exists anymore');
+                }
+            }).catch(err => {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+            })
+        } else {
+            utils.errorMessage(res, 500, 'User does not exists anymore', {});
         }
-        else {
-            utils.errorMessage(res, 500, 'User does not exists anymore');
-        }
-    }).catch(err => {
-        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    }).catch(error => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, error);
     })
 })
 
@@ -69,12 +82,11 @@ router.get('/view-profile', (req, res, next) => {
     let userData = {
         email: req.headers.email
     }
-    console.log(userData);
     Users.findOne(userData).then(response => {
         if (response) {
             res.status(200).json(response);
         } else {
-            utils.errorMessage(res, 500, 'User does not exists anymore', err);
+            utils.errorMessage(res, 500, 'User does not exists anymore', {});
         }
     }).catch(error => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, error);
