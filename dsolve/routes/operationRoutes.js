@@ -127,7 +127,6 @@ router.post('/add-defectdata', (req, res, next) => {
         checked: req.body.checked,
         defect: req.body.defect,
         defectName: req.body.defectName,
-        amount: req.body.amount,
         lastUpdated: new Date(),
         user: req.body.user
     }
@@ -147,7 +146,7 @@ router.post('/add-defectdata', (req, res, next) => {
         if (response) {
             DefectData.findOneAndUpdate({ user: defData.user, defect: defData.defect, checked: defData.checked }, { $set: defData }, { new: true }).then(response => {
                 if (response) {
-                    res.status(200).json(response);
+                    next();
                 }
                 else {
                     utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
@@ -159,7 +158,7 @@ router.post('/add-defectdata', (req, res, next) => {
         else {
             DefectData.create(defData).then(response => {
                 if (response) {
-                    res.status(200).json(response);
+                    next();
                 }
                 else {
                     utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
@@ -171,6 +170,18 @@ router.post('/add-defectdata', (req, res, next) => {
     }).catch(err => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
     })
-})
+}, getDefects())
+
+function getDefects() {
+    return (req, res) => {
+        DefectData.aggregate([
+            { $lookup: { from: "defects", localField: "defect", foreignField: "_id", as: "defectDetails" } }
+        ]).then(response => {
+            res.status(200).json(response);
+        }).catch(err => {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+        });
+    }
+}
 
 module.exports = router
