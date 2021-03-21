@@ -121,7 +121,7 @@ router.get('/get-defects', (req, res, next) => {
     })
 })
 
-router.post('/add-defectdata', (req, res, next) => {
+router.post('/add-defectdata', async (req, res, next) => {
     let defData = {
         amount: req.body.amount,
         checked: req.body.checked,
@@ -130,8 +130,8 @@ router.post('/add-defectdata', (req, res, next) => {
         lastUpdated: new Date(),
         user: req.body.user
     }
-    if (!defData.defect) {
-        Defects.create({ name: defData.defectName }).then(response => {
+    if (defData.defect === '0') {
+        await Defects.create({ name: defData.defectName }).then(response => {
             if (response) {
                 defData.defect = response._id;
             }
