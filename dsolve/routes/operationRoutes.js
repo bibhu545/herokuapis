@@ -4,6 +4,7 @@ const Departments = require('../models/departmentModel')
 const Defects = require('../models/defectModel')
 const DefectData = require('../models/defectDataModel')
 const utils = require('../utils')
+const {ObjectId} = require('mongodb');
 
 const router = express.Router()
 
@@ -52,6 +53,53 @@ router.post('/get-dhu', (req, res, next) => {
         department: req.body.deptId
     }
     Checked.find({ user: checkedData.user, department: checkedData.department }).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        }
+        else {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
+router.post('/get-dhu-bydate', (req, res, next) => {
+    let checkedData = {
+        user: req.body.userId,
+        department: req.body.deptId,
+        date: {
+            $lte: new Date(req.body.fromDate)
+        }
+    }
+    if (req.body.toDate) {
+        checkedData = {
+            ...checkedData,
+            date: {
+                $gte: new Date(req.body.fromDate),
+                $lte: new Date(req.body.toDate)
+            }
+        }
+    }
+    Checked.find(checkedData).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        }
+        else {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
+router.post('/get-defectdata-bychecked-ids', (req, res, next) => {
+    let ids = req.body.ids
+    data = []
+    ids.forEach(element => {
+        data.push(ObjectId(element));
+    });
+    DefectData.find({ checked: { $in: data } }).then(response => {
         if (response) {
             res.status(200).json(response);
         }
