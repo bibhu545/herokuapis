@@ -220,6 +220,10 @@ router.post('/add-defectdata', async (req, res, next) => {
     })
 }, getDefects())
 
+router.get('/get-defectdata', async (req, res, next) => {
+    next();
+}, getDefects())
+
 function getDefects() {
     return (req, res) => {
         DefectData.aggregate([
