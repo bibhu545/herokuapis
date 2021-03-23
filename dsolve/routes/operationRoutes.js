@@ -4,7 +4,7 @@ const Departments = require('../models/departmentModel')
 const Defects = require('../models/defectModel')
 const DefectData = require('../models/defectDataModel')
 const utils = require('../utils')
-const {ObjectId} = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const router = express.Router()
 
@@ -232,4 +232,44 @@ function getDefects() {
     }
 }
 
+router.get('/get-solutions', (req, res, next) => {
+    // let checkedData = {
+    //     department: req.body.deptId,
+    //     date: new Date(req.body.fromDate)
+    // }
+    // if (req.body.toDate) {
+    //     checkedData = {
+    //         ...checkedData,
+    //         date: {
+    //             $gte: new Date(req.body.fromDate),
+    //             $lte: new Date(req.body.toDate)
+    //         }
+    //     }
+    // }
+    DefectData.aggregate([
+        { $lookup: { from: "checkeds", localField: "checked", foreignField: "_id", as: "checkedDetails" } },
+        { $lookup: { from: "defects", localField: "defect", foreignField: "_id", as: "defectDetails" } },
+        { $sort: { amount: -1 } },
+        { $limit: 5 }
+    ]).then(response => {
+        res.status(200).json(response);
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    });
+})
+
+
 module.exports = router
+
+
+// {
+//     $project: {
+//         items: {
+//             $filter: {
+//                 input: "$items",
+//                 as: "val",
+//                 cond: checkedData
+//             }
+//         }
+//     }
+// },
