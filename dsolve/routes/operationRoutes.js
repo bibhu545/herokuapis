@@ -142,22 +142,51 @@ router.get('/get-department', (req, res, next) => {
 
 router.post('/add-defects', (req, res, next) => {
     let defData = {
-        name: req.body.name
+        name: req.body.name,
+        department: req.body.deptId,
+        defectId: req.body.defectId
     }
-    Defects.findOneAndUpdate({ name: defData.name }, { $set: { defData } }, { upsert: true, new: true }).then(response => {
+    if (req.body.solution) {
+        defData = {
+            ...defData,
+            solution: req.body.solution
+        }
+    }
+    Defects.findById(defData.defectId).then(response => {
         if (response) {
-            res.status(200).json(response);
+            Defects.findOneAndUpdate({ _id: defData.defectId }, { $set: defData }, { new: true }).then(response => {
+                if (response) {
+                    res.status(200).json(response);
+                }
+                else {
+                    utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+                }
+            }).catch(err => {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+            })
         }
         else {
-            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+            Defects.create(defData).then(response => {
+                if (response) {
+                    res.status(200).json(response);
+                }
+                else {
+                    utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+                }
+            }).catch(err => {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+            })
         }
     }).catch(err => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
     })
 })
 
-router.get('/get-defects', (req, res, next) => {
-    Defects.find().then(response => {
+router.post('/get-defects', (req, res, next) => {
+    let defData = {
+        department: req.body.deptId
+    }
+    Defects.find(defData).then(response => {
         if (response) {
             res.status(200).json(response);
         }

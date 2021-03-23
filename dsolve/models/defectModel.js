@@ -6,6 +6,16 @@ const defectSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    solution: {
+        type: String,
+        required: true,
+        default: 'No solution available.'
+    },
+    department: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: true
+    },
     addedAt: {
         type: Date,
         default: new Date()
