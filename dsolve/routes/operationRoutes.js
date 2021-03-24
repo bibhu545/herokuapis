@@ -198,6 +198,19 @@ router.post('/get-defects', (req, res, next) => {
     })
 })
 
+router.post('/delete-defect', (req, res, next) => {
+    Defects.deleteOne({ _id: req.body.defectId }).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        }
+        else {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
 router.post('/add-defectdata', async (req, res, next) => {
     let defData = {
         amount: req.body.amount,
@@ -205,10 +218,11 @@ router.post('/add-defectdata', async (req, res, next) => {
         defect: req.body.defect,
         defectName: req.body.defectName,
         lastUpdated: new Date(),
-        user: req.body.user
+        user: req.body.user,
+        department: req.body.deptId,
     }
     if (defData.defect === '0') {
-        await Defects.create({ name: defData.defectName }).then(response => {
+        await Defects.create({ name: defData.defectName, department: defData.department }).then(response => {
             if (response) {
                 defData.defect = response._id;
             }
@@ -266,24 +280,9 @@ function getDefects() {
 }
 
 router.get('/get-solutions', (req, res, next) => {
-    // let checkedData = {
-    //     department: req.body.deptId,
-    //     date: new Date(req.body.fromDate)
-    // }
-    // if (req.body.toDate) {
-    //     checkedData = {
-    //         ...checkedData,
-    //         date: {
-    //             $gte: new Date(req.body.fromDate),
-    //             $lte: new Date(req.body.toDate)
-    //         }
-    //     }
-    // }
     DefectData.aggregate([
         { $lookup: { from: "checkeds", localField: "checked", foreignField: "_id", as: "checkedDetails" } },
-        { $lookup: { from: "defects", localField: "defect", foreignField: "_id", as: "defectDetails" } },
-        { $sort: { amount: -1 } },
-        { $limit: 5 }
+        { $lookup: { from: "defects", localField: "defect", foreignField: "_id", as: "defectDetails" } }
     ]).then(response => {
         res.status(200).json(response);
     }).catch(err => {
@@ -293,16 +292,3 @@ router.get('/get-solutions', (req, res, next) => {
 
 
 module.exports = router
-
-
-// {
-//     $project: {
-//         items: {
-//             $filter: {
-//                 input: "$items",
-//                 as: "val",
-//                 cond: checkedData
-//             }
-//         }
-//     }
-// },
