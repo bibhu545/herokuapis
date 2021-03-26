@@ -211,6 +211,19 @@ router.post('/delete-defect', (req, res, next) => {
     })
 })
 
+router.post('/delete-defect-data', (req, res, next) => {
+    DefectData.deleteOne({ _id: req.body.id }).then(response => {
+        if (response) {
+            res.status(200).json(response);
+        }
+        else {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
 router.post('/add-defectdata', async (req, res, next) => {
     let defData = {
         amount: req.body.amount,
