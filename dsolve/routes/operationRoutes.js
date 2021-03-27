@@ -17,7 +17,7 @@ router.post('/add-dhu', (req, res, next) => {
         department: req.body.deptId,
         lastUpdated: new Date()
     }
-    Checked.findOne({ dateString: checkedData.dateString, department: checkedData.department }).then(response => {
+    Checked.findOne({ date: checkedData.date, department: checkedData.department }).then(response => {
         if (response) {
             Checked.findOneAndUpdate({ dateString: checkedData.dateString, department: checkedData.department }, { $set: checkedData }, { new: true }).then(response => {
                 if (response) {
@@ -49,10 +49,9 @@ router.post('/add-dhu', (req, res, next) => {
 
 router.post('/get-dhu', (req, res, next) => {
     let checkedData = {
-        user: req.body.userId,
         department: req.body.deptId
     }
-    Checked.find({ user: checkedData.user, department: checkedData.department }).then(response => {
+    Checked.find({ department: checkedData.department }).then(response => {
         if (response) {
             res.status(200).json(response);
         }
@@ -64,9 +63,28 @@ router.post('/get-dhu', (req, res, next) => {
     })
 })
 
+router.post('/delete-dhu', (req, res, next) => {
+    let checkedData = {
+        _id: req.body.id
+    }
+    Checked.remove(checkedData).then(response => {
+        if (response) {
+            DefectData.remove({ checked: checkedData._id }).then(response => {
+                res.status(200).json(response);
+            }).catch(err => {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+            });
+        }
+        else {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+        }
+    }).catch(err => {
+        utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+    })
+})
+
 router.post('/get-dhu-bydate', (req, res, next) => {
     let checkedData = {
-        user: req.body.userId,
         department: req.body.deptId,
         date: {
             $lte: new Date(req.body.fromDate)
@@ -246,9 +264,9 @@ router.post('/add-defectdata', async (req, res, next) => {
             utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
         });
     }
-    DefectData.findOne({ user: defData.user, defect: defData.defect, checked: defData.checked }).then(response => {
+    DefectData.findOne({ defect: defData.defect, checked: defData.checked }).then(response => {
         if (response) {
-            DefectData.findOneAndUpdate({ user: defData.user, defect: defData.defect, checked: defData.checked }, { $set: defData }, { new: true }).then(response => {
+            DefectData.findOneAndUpdate({ defect: defData.defect, checked: defData.checked }, { $set: defData }, { new: true }).then(response => {
                 if (response) {
                     next();
                 }
