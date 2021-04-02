@@ -218,12 +218,16 @@ router.post('/get-defects', (req, res, next) => {
 
 router.post('/delete-defect', (req, res, next) => {
     Defects.deleteOne({ _id: req.body.defectId }).then(response => {
-        if (response) {
-            res.status(200).json(response);
-        }
-        else {
-            utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
-        }
+        DefectData.remove({ defect: req.body.defectId }).then(response => {
+            if (response) {
+                res.status(200).json(response);
+            }
+            else {
+                utils.errorMessage(res, 500, utils.ERROR_MESSAGE);
+            }
+        }).catch(err => {
+            utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
+        });
     }).catch(err => {
         utils.errorMessage(res, 500, utils.ERROR_MESSAGE, err);
     })
